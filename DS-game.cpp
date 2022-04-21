@@ -61,7 +61,7 @@ void drawBorder()
 }
 void genEnemy(int ind)
 {
-    enemyX[ind] = 17 + rand() % (33);
+    enemyX[ind] = 17 /*+ rand() % (33)*/;
 }
 void drawEnemy(int ind)
 {
@@ -227,7 +227,7 @@ void play()
             gameover();
             return;
         }
-        Sleep(50);
+        Sleep(10);
         eraseCar();
         eraseEnemy(0);
         eraseEnemy(1);
