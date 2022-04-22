@@ -12,18 +12,78 @@
 using namespace std;
 
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-COORD CursorPosition; // To specify the coordinates
+COORD CursorPosition;       // To specify the coordinates
+int carPos = WIN_WIDTH / 2; // To initialize it at the half of the screen
+
+class Hash
+{
+
+    // Pointer to an array
+    int *table;
+
+public:
+    int BUCKET;
+    Hash(int x); // Constructor
+
+    // inserts a key into hash table
+    void insertItem(int x);
+
+    // deletes a key from hash table
+    void deleteItem(int key);
+
+    // hash function to map values to key
+    int hashFunction(int x)
+    {
+        return (x % BUCKET);
+    }
+
+    int searchItem();
+};
+
+Hash::Hash(int x)
+{
+    this->BUCKET = x;
+    table = new int[BUCKET];
+}
+
+void Hash::insertItem(int key)
+{
+    int index = hashFunction(key);
+    table[index] = 1;
+}
+
+void Hash::deleteItem(int key)
+{
+    // get the hash index of key
+    int index = hashFunction(key);
+    table[index] = 0;
+}
+int Hash::searchItem()
+{
+    for (int i = 0; i < BUCKET; i++)
+    {
+        if (table[i] == 1)
+        {
+            int pos = i + 17;
+            if (pos == carPos)
+                return pos;
+            else
+                return pos + 17;
+        }
+    }
+}
 
 int enemyY[3];
 int enemyX[3];
+Hash computerPos(17);
+
 int enemyFlag[3];
 int car[4][4] = {32, 241, 241, 32,
                  241, 241, 241, 241,
                  32, 241, 241, 32,
                  241, 241, 241, 241};
 
-int carPos = WIN_WIDTH / 2; // To initialize it at the half of the screen
-int score = 0;              // Initialize score with zero
+int score = 0; // Initialize score with zero
 
 void gotoxy(int x, int y)
 {
@@ -61,7 +121,7 @@ void drawBorder()
 }
 void genEnemy(int ind)
 {
-    enemyX[ind] = 17 /*+ rand() % (33)*/;
+    enemyX[ind] = computerPos.searchItem();
 }
 void drawEnemy(int ind)
 {
@@ -166,6 +226,7 @@ void instructions()
 void play()
 {
     carPos = -1 + WIN_WIDTH / 2;
+    computerPos.insertItem(carPos);
     score = 0;
     enemyFlag[0] = 1;
     enemyFlag[1] = 0;
@@ -202,6 +263,7 @@ void play()
     {
         if (kbhit())
         {
+            computerPos.deleteItem(carPos);
             char ch = getch();
             if (ch == 'a' || ch == 'A')
             {
@@ -217,6 +279,7 @@ void play()
             {
                 break;
             }
+            computerPos.insertItem(carPos);
         }
 
         drawCar();
@@ -227,7 +290,7 @@ void play()
             gameover();
             return;
         }
-        Sleep(10);
+        Sleep(50);
         eraseCar();
         eraseEnemy(0);
         eraseEnemy(1);
