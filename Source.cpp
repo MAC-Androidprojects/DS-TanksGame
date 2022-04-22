@@ -46,6 +46,17 @@ int g_enemy_tank_center = SCREEN_WIDTH / 2;
 /****************************************************/
 
 /*Functions definitions*/
+void setcursor(bool visible, DWORD size)
+{
+	if (size == 0)
+		size = 20;
+
+	CONSOLE_CURSOR_INFO lpCursor;
+	lpCursor.bVisible = visible;
+	lpCursor.dwSize = size;
+	SetConsoleCursorInfo(console, &lpCursor);
+}
+
 void gotoxy(int x, int y)
 {
 	/*to determine the x position of the cursor in the console */
@@ -145,11 +156,25 @@ void draw_enemy_rocket()
 		}
 	}
 }
-/*--------------------------------------------------------------------------------*/
 
-/****************************************************/
-int main()
+void instructions()
 {
+	system("cls");
+	cout << "Instructions";
+	cout << "\n----------------";
+	cout << "\n This game is between player1 and computer ";
+	cout << "\n There are 2 tanks that try to destroy each other";
+	cout << "\n\n Press 'a' to move left ";
+	cout << "\n Press 'd' to move right";
+	cout << "\n press 'space' to shoot";
+	cout << "\n Press 'escape' to exit";
+	cout << "\n\nPress any key to go back to menu";
+	getch();
+}
+
+void play()
+{
+
 	/* To clear the whole screen*/
 	system("cls");
 	/*calling just for test*/
@@ -158,7 +183,42 @@ int main()
 	draw_my_tank();
 	draw_my_rocket();
 	draw_bourder();
+}
+/*--------------------------------------------------------------------------------*/
 
-	cout << endl;
+/****************************************************/
+int main()
+{
+	setcursor(0, 0);
+	srand((unsigned)time(NULL));
+
+	do
+	{
+		system("cls"); // To clear the whole screen
+		gotoxy(10, 5);
+		cout << " -------------------------- ";
+		gotoxy(10, 6);
+		cout << " |        Tanks Game        | ";
+		gotoxy(10, 7);
+		cout << " --------------------------";
+		gotoxy(10, 9);
+		cout << "1. Start Game";
+		gotoxy(10, 10);
+		cout << "2. Instructions";
+		gotoxy(10, 11);
+		cout << "3. Quit";
+		gotoxy(10, 13);
+		cout << "Select option: ";
+		char op = getche(); // To get a char
+
+		if (op == '1')
+			play();
+		else if (op == '2')
+			instructions();
+		else if (op == '3')
+			exit(0);
+
+	} while (1);
+
 	return 0;
 }
