@@ -11,7 +11,6 @@ using namespace std;
 #define SCREEN_HEIGHT 30
 #define GAME_WIDTH 50
 #define MY_TANK_POSTIONY 29
-#define ENEMY_TANK_POSTIONY 0
 /*******************************/
 
 /*****Global variables*****/
@@ -19,29 +18,25 @@ HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD cursor_position; // To specify the coordinates
 
 /*Genral tank "for user and for the enemy"*/
-int g_tank[4][4] = {
+int g_my_tank[4][4] = {
 	{254, 32, 32, 254},
 	{254, 254, 254, 254},
 	{254, 254, 254, 254},
 	{254, 32, 32, 254}};
 
-int g_my_rocket[2][4] = {
-	{193, 193, 193, 193},
-	{32, 193, 193, 32}};
-
-int g_enemy_rocket[2][4] = {
+int g_enemy_tank[4][4] = {
+	{194, 32, 32, 194},
 	{194, 194, 194, 194},
-	{32, 194, 194, 32}};
+	{194, 194, 194, 194},
+	{194, 32, 32, 194}};
 
-/*the x positions for user and enemy .. y position is constant for both "user and enemy"*/
-int g_my_tank_position_x = 0;
-int g_enemy_tank_position_x = 0;
 
-/*to calculate the center position of the tanck*/
-int g_my_tank_center = SCREEN_WIDTH / 2;
+/*the x positions for user and enemy .. y position is constant for user*/
+int g_my_tank_position_x = SCREEN_WIDTH/2;
+int g_enemy_tank_position_x[2] = {SCREEN_WIDTH/2,SCREEN_WIDTH/2};
+/*initially the y position is 0 for the enemy and will be updated throght the functions that modifies the motion of the enemy*/
+int g_enemy_tank_position_y[2] ={0,0};
 
-/*to calculate the center position of the tanck*/
-int g_enemy_tank_center = SCREEN_WIDTH / 2;
 
 /****************************************************/
 
@@ -83,12 +78,12 @@ void draw_my_tank()
 	/*this loop to detect the y of the height of the tank*/
 	for (int posy = 0; posy < 4; posy++)
 	{
-		gotoxy((g_my_tank_center - 1), (MY_TANK_POSTIONY - posy));
+		gotoxy((g_my_tank_position_x  - 1), (MY_TANK_POSTIONY - posy));
 		/*this loop to detect the x of the wigth of the tank*/
 		for (int posx = 0; posx < 4; posx++)
 		{
-			/*draw the tank using the array g_tank*/
-			cout << char(g_tank[posy][posx]);
+			/*draw the tank using the array g_my_tank*/
+			cout << char(g_my_tank[posy][posx]);
 		}
 	}
 }
@@ -100,7 +95,7 @@ void erase_my_tank()
 	/*this loop to detect the y of the height of the tank*/
 	for (int posy = 0; posy < 4; posy++)
 	{
-		gotoxy((g_my_tank_center - 1), (MY_TANK_POSTIONY - posy));
+		gotoxy((g_my_tank_position_x  - 1), (MY_TANK_POSTIONY - posy));
 		/*this loop to detect the x of the wigth of the tank*/
 		for (int posx = 0; posx < 4; posx++)
 		{
@@ -110,66 +105,35 @@ void erase_my_tank()
 	}
 }
 
-/*function used to draw the user's rocket */
-void draw_my_rocket()
-{
-	/*for loop to get the racket coordenates and draw it*/
-	/*this loop to detect the y of the height of the rocket*/
-	for (int posy = 0; posy < 2; posy++)
-	{
-		gotoxy((g_my_tank_center - 1), (MY_TANK_POSTIONY - 4 - posy));
-		/*this loop to detect the x of the wigth of the rocket*/
-		for (int posx = 0; posx < 4; posx++)
-		{
-			/*draw the user rocket using the array g_my_rocket*/
-			cout << char(g_my_rocket[posy][posx]);
-		}
-	}
-}
-/*function used to erase the user's rocket */
-void erase_my_rocket()
-{
-	/*for loop to get the racket coordenates and draw it*/
-	/*this loop to detect the y of the height of the rocket*/
-	for (int posy = 0; posy < 2; posy++)
-	{
-		gotoxy((g_my_tank_center - 1), (MY_TANK_POSTIONY - 4 - posy));
-		/*this loop to detect the x of the wigth of the rocket*/
-		for (int posx = 0; posx < 4; posx++)
-		{
-			/*erase the user rocket*/
-			cout << char(32);
-		}
-	}
-}
+
 /*--------------------------------------------------------------------------------*/
 
 /*---------------- sector for enemy elements---------------------*/
 /*function used to draw the PC's tank */
-void draw_enemy_tank()
+void draw_enemy_tank(unsigned int index_enemy_tank)
 {
 	/*for loop to get the tank coordenates and draw it*/
 	/*this loop to detect the y of the height of the tank*/
 	for (int posy = 0; posy < 4; posy++)
 	{
-		gotoxy((g_enemy_tank_center - 1), (posy));
+		gotoxy((g_enemy_tank_position_x[index_enemy_tank] - 1), (posy));
 		/*this loop to detect the x of the wigth of the tank*/
 		for (int posx = 0; posx < 4; posx++)
 		{
 			/*draw the tank using the array g_tank*/
-			cout << char(g_tank[posy][posx]);
+			cout << char(g_enemy_tank[posy][posx]);
 		}
 	}
 }
 
 /*function used to erase the PC's tank */
-void erase_enemy_tank()
+void erase_enemy_tank(unsigned int index_enemy_tank)
 {
 	/*for loop to get the tank coordenates and draw it*/
 	/*this loop to detect the y of the height of the tank*/
 	for (int posy = 0; posy < 4; posy++)
 	{
-		gotoxy((g_enemy_tank_center - 1), (posy));
+		gotoxy((g_enemy_tank_position_x[index_enemy_tank] - 1), (posy));
 		/*this loop to detect the x of the wigth of the tank*/
 		for (int posx = 0; posx < 4; posx++)
 		{
@@ -179,39 +143,6 @@ void erase_enemy_tank()
 	}
 }
 
-/*function used to draw the enemy's rocket */
-void draw_enemy_rocket()
-{
-	/*for loop to get the racket coordenates and draw it*/
-	/*this loop to detect the y of the height of the rocket*/
-	for (int posy = 0; posy < 2; posy++)
-	{
-		gotoxy((g_enemy_tank_center - 1), (posy + 4));
-		/*this loop to detect the x of the wigth of the rocket*/
-		for (int posx = 0; posx < 4; posx++)
-		{
-			/*draw the racket using the array g_enemy_rocket*/
-			cout << char(g_enemy_rocket[posy][posx]);
-		}
-	}
-}
-
-/*function used to earse the enemy's rocket */
-void earse_enemy_rocket()
-{
-	/*for loop to get the racket coordenates and draw it*/
-	/*this loop to detect the y of the height of the rocket*/
-	for (int posy = 0; posy < 2; posy++)
-	{
-		gotoxy((g_enemy_tank_center - 1), (posy + 4));
-		/*this loop to detect the x of the wigth of the rocket*/
-		for (int posx = 0; posx < 4; posx++)
-		{
-			/*erase the rocket*/
-			cout << char(32);
-		}
-	}
-}
 /*--------------------------------------------------------------------------------*/
 
 /****************************************************/
@@ -220,10 +151,8 @@ int main()
 	/* To clear the whole screen*/
 	system("cls");
 	/*calling just for test*/
-	draw_enemy_tank();
-	draw_enemy_rocket();
+	draw_enemy_tank(1);
 	draw_my_tank();
-	draw_my_rocket();
 	draw_bourder();
 
 	cout << endl;
