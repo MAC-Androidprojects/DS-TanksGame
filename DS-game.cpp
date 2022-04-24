@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <time.h>
 #include <string>
+#include <fstream>
 
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
@@ -78,10 +79,17 @@ int enemyX[3];
 Hash computerPos(17);
 
 int enemyFlag[3];
-int car[4][4] = {32, 241, 241, 32,
-                 241, 241, 241, 241,
-                 32, 241, 241, 32,
-                 241, 241, 241, 241};
+int car[4][4] = {
+    {254, 32, 32, 254},
+    {254, 254, 254, 254},
+    {254, 254, 254, 254},
+    {254, 32, 32, 254}};
+
+int g_enemy_tank[4][4] = {
+    {194, 32, 32, 194},
+    {194, 194, 194, 194},
+    {194, 194, 194, 194},
+    {194, 32, 32, 194}};
 
 int score = 0; // Initialize score with zero
 
@@ -108,15 +116,15 @@ void drawBorder()
         for (int j = 0; j < 17; j++)
         {
             gotoxy(0 + j, i);
-            cout << char(241);
+            cout << char(178);
             gotoxy(WIN_WIDTH - j, i);
-            cout << char(241);
+            cout << char(178);
         }
     }
     for (int i = 0; i < SCREEN_HEIGHT; i++)
     {
         gotoxy(SCREEN_WIDTH, i);
-        cout << char(241);
+        cout << char(178);
     }
 }
 void genEnemy(int ind)
@@ -127,14 +135,27 @@ void drawEnemy(int ind)
 {
     if (enemyFlag[ind] == true)
     {
+        int i;
         gotoxy(enemyX[ind], enemyY[ind]);
-        cout << "****";
+        for (i = 0; i < 4; i++)
+        {
+            cout << char(g_enemy_tank[0][i]);
+        }
         gotoxy(enemyX[ind], enemyY[ind] + 1);
-        cout << " ** ";
+        for (i = 0; i < 4; i++)
+        {
+            cout << char(g_enemy_tank[1][i]);
+        }
         gotoxy(enemyX[ind], enemyY[ind] + 2);
-        cout << "****";
+        for (i = 0; i < 4; i++)
+        {
+            cout << char(g_enemy_tank[2][i]);
+        }
         gotoxy(enemyX[ind], enemyY[ind] + 3);
-        cout << " ** ";
+        for (i = 0; i < 4; i++)
+        {
+            cout << char(g_enemy_tank[3][i]);
+        }
     }
 }
 void eraseEnemy(int ind)
@@ -194,12 +215,35 @@ int collision()
 }
 void gameover()
 {
+    ifstream indata; // indata is like
+    ofstream file;
+    int max_score;
+    indata.open("best_score.txt");
+    if (!indata)
+    {
+        max_score = 0;
+        file.open("best_score.txt");
+        file << max_score;
+        file.close();
+    }
+    indata >> max_score;
+    indata.close();
+    if (score > max_score)
+    {
+        max_score = score;
+        file.open("best_score.txt");
+        file << max_score;
+        file.close();
+    }
     system("cls");
     cout << endl;
     cout << "\t\t--------------------------" << endl;
     cout << "\t\t-------- Game Over -------" << endl;
     cout << "\t\t--------------------------" << endl
          << endl;
+    cout << "\t\t----- your score: " << score << " -----" << endl;
+
+    cout << "\t\t---- best score: " << max_score << " ------" << endl;
     cout << "\t\tPress any key to go back to menu.";
     getch();
 }
@@ -322,6 +366,7 @@ void play()
 
 int main()
 {
+
     setcursor(0, 0);
     srand((unsigned)time(NULL));
 
