@@ -6,16 +6,31 @@
 #include <string>
 #include <fstream>
 
+using namespace std;
+
+/*------------------------ static values ----------------------- - */
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
 #define WIN_WIDTH 70
+#define LINEAR 0
+#define SEARCH_TYPE LINEAR
+/*-------------------------------------------------------------- - */
 
-using namespace std;
 
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD CursorPosition;				   // To specify the coordinates
-int g_player_tank_pos = WIN_WIDTH / 2; // To initialize it at the half of the screen
 
+/*To initialize it at the half of the screen and that value will be updated according to the x position of the player's tank*/
+int g_player_tank_pos = WIN_WIDTH / 2;  
+
+/*-------------------------------------------------------------------*/
+/*----------------------- data structure used -----------------------*/
+/*-------------------------------------------------------------------*/
+/*
+[description]: this sector holds a hash class used as a data structure for the game that 
+by mapping the current location of the players tank to a certain index in a table, then assign the current location 
+by 1 and the other indexex are 0's and searching about the (1) value by using the hashes technic.
+*/
 class Hash
 {
 
@@ -23,44 +38,70 @@ class Hash
 	int *table;
 
 public:
+	/*dummy variable used to pass the table elements to the pointer table use it as array*/
 	int BUCKET;
-	Hash(int x); // Constructor
 
-	// inserts a key into hash table
-	void insertItem(int x);
+	/*** the prototypes of the functions used in the hash class***/
+	/*Constructor to get the intial values*/
+	Hash(int x); 
 
-	// deletes a key from hash table
+	/*inserts a key into hash table*/
+	void insertItem(int no_of_indexes);
+
+	/*deletes a key from hash table*/
 	void deleteItem(int key);
 
-	// hash function to map values to key
+	/*hash function to map values to key*/
+	/*the hashing function that gives the index of the input that is from 0 to (no_of_indexes-1)*/
 	int hashFunction(int x)
 	{
 		return (x % BUCKET);
 	}
 
+	/*search function*/
 	int searchItem();
+
+	/*distructor to deallocate the table from the memory*/
+	~Hash(){
+		delete table;
+	}
+	/************************************************************/
 };
 
-Hash::Hash(int x)
+/***functions definitions sector of the hash class***/
+
+/*the constructor gets the value of no_of_indexes that represents the number of the elements in 
+the hash table "the pointer table at the class" */
+Hash::Hash(int no_of_indexes)
 {
-	this->BUCKET = x;
+	/*assigne the dummy variable "BUCKET"*/
+	this->BUCKET = no_of_indexes;
+	/*creating a dynamic array and make its head or name is table .. which is private element*/
 	table = new int[BUCKET];
 }
 
-void Hash::insertItem(int key)
+/*function to insert postion of the player's tank as index to the table*/
+void Hash::insertItem(int position)
 {
-	int index = hashFunction(key);
+	/*converts the location to index*/
+	int index = hashFunction(position);
 	table[index] = 1;
 }
 
-void Hash::deleteItem(int key)
+/*function to delete the previous player's position*/
+void Hash::deleteItem(int position)
 {
 	// get the hash index of key
-	int index = hashFunction(key);
+	int index = hashFunction(position);
 	table[index] = 0;
 }
+
+/*function used for searching */
 int Hash::searchItem()
 {
+
+/*to get complixity of O(n) and n depends on the BUCKET value*/
+#if(SEARCH_TYPE == LINEAR)
 	for (int i = 0; i < BUCKET; i++)
 	{
 		if (table[i] == 1)
@@ -72,13 +113,24 @@ int Hash::searchItem()
 				return pos + 17;
 		}
 	}
+#endif	
 }
+/************************************************************/
+/*-------------------------------------------------------------- - */
 
-int enemyY[3];
-int enemyX[3];
+/*------------------------------------------------------------------------------------*/
+/*-----------------------this sector for enemy and user variables ---------------------*/
+/*------------------------------------------------------------------------------------*/
+
+/*two arrays to define the location of the enemy "computers' tanks"*/
+int enemyY[2];
+int enemyX[2];
 Hash computerPos(17);
 
-int enemyFlag[3];
+/*enemy flage to get the flage to enemy second creation*/
+int enemyFlag[2];
+
+/*------------the shape of the player's and the computers tanks----------*/
 int g_player_tank[4][4] = {
 	{254, 32, 32, 254},
 	{254, 254, 254, 254},
@@ -90,15 +142,21 @@ int g_enemy_tank[4][4] = {
 	{194, 194, 194, 194},
 	{194, 194, 194, 194},
 	{194, 32, 32, 194}};
-
+/*-----------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------------*/
 int score = 0; // Initialize score with zero
 
+/*function to set the cursor on the location (x,y) on the screen*/
 void gotoxy(int x, int y)
 {
+	/*passing the positions x and y to the structure CursorPosition*/
 	CursorPosition.X = x;
 	CursorPosition.Y = y;
+	/*passing the structure to the function SetConsoleCursorPosition to set the cursor on that (x,y) posision*/
 	SetConsoleCursorPosition(console, CursorPosition);
 }
+
+
 void setcursor(bool visible, DWORD size)
 {
 	if (size == 0)
@@ -109,28 +167,34 @@ void setcursor(bool visible, DWORD size)
 	lpCursor.dwSize = size;
 	SetConsoleCursorInfo(console, &lpCursor);
 }
+
+/*function used just to set the borders layout of the game play*/
 void drawBorder()
 {
-	for (int i = 0; i < SCREEN_HEIGHT; i++)
+	for (int row = 0; row < SCREEN_HEIGHT; row++)
 	{
-		for (int j = 0; j < 17; j++)
+		for (int col = 0; col < 17; col++)
 		{
-			gotoxy(0 + j, i);
+			gotoxy(0 + col, row);
 			cout << char(178);
-			gotoxy(WIN_WIDTH - j, i);
+			gotoxy(WIN_WIDTH - col, row);
 			cout << char(178);
 		}
 	}
-	for (int i = 0; i < SCREEN_HEIGHT; i++)
+	for (int row = 0; row < SCREEN_HEIGHT; row++)
 	{
-		gotoxy(SCREEN_WIDTH, i);
+		gotoxy(SCREEN_WIDTH, row);
 		cout << char(178);
 	}
 }
+
+/*function used to get the users position and moves it to the enemyX[i] xlocation*/
 void genEnemy(int ind)
 {
 	enemyX[ind] = computerPos.searchItem();
 }
+
+/*Function used to draw and set the enemy on the screen */
 void drawEnemy(int ind)
 {
 	if (enemyFlag[ind] == true)
@@ -158,6 +222,8 @@ void drawEnemy(int ind)
 		}
 	}
 }
+
+/*Function used to delete the enemy from the screen */
 void eraseEnemy(int ind)
 {
 	if (enemyFlag[ind] == true)
@@ -172,6 +238,8 @@ void eraseEnemy(int ind)
 		cout << "    ";
 	}
 }
+
+/*function used to regenerate and draw and set the enemy on the screen*/
 void resetEnemy(int ind)
 {
 	eraseEnemy(ind);
@@ -179,6 +247,7 @@ void resetEnemy(int ind)
 	genEnemy(ind);
 }
 
+/*Function used to draw and set the player's tank on the screen depending on g_player_tank_pos*/
 void draw_player_tank()
 {
 	for (int i = 0; i < 4; i++)
@@ -190,6 +259,8 @@ void draw_player_tank()
 		}
 	}
 }
+
+/*Function used to delete the the player's tank from the screen */
 void erase_player_tank()
 {
 	for (int i = 0; i < 4; i++)
@@ -201,7 +272,7 @@ void erase_player_tank()
 		}
 	}
 }
-
+/*function to detecte if there it collision happends between the enemy and player's tanks*/
 int collision()
 {
 	if (enemyY[0] + 4 >= 23)
@@ -213,6 +284,8 @@ int collision()
 	}
 	return 0;
 }
+
+/*function gives the layout of gameover message*/
 void gameover()
 {
 	ifstream indata; // indata is like
@@ -252,23 +325,20 @@ void updateScore()
 	gotoxy(WIN_WIDTH + 7, 5);
 	cout << "Score: " << score << endl;
 }
-
-void instructions()
-{
-
-	system("cls");
-	cout << "Instructions";
-	cout << "\n----------------";
-	cout << "\n Avoid Tanks by moving left or right. ";
-	cout << "\n\n Press 'a' to move left";
-	cout << "\n Press 'd' to move right";
-	cout << "\n Press 'escape' to exit";
-	cout << "\n\nPress any key to go back to menu";
-	getch();
-}
-
+/*-----------------------------------------------------------------------------*/
+/*--------------------------------- the game play -----------------------------*/
+/*-----------------------------------------------------------------------------*/
 void play()
 {
+	/*initializing:
+	the user's tank position
+	the first enemy's postion
+	the score
+	gives the flag to the firest enemy
+	set the flag of the second enemy by 0 
+	set the y position of the enemy's tanks by 1
+	*/
+
 	g_player_tank_pos = -1 + WIN_WIDTH / 2;
 	computerPos.insertItem(g_player_tank_pos);
 	score = 0;
@@ -276,11 +346,12 @@ void play()
 	enemyFlag[1] = 0;
 	enemyY[0] = enemyY[1] = 1;
 
+	/*initialize the system*/
 	system("cls");
+
+	/*call these functions to set the game display layout*/
 	drawBorder();
 	updateScore();
-	genEnemy(0);
-	genEnemy(1);
 
 	gotoxy(WIN_WIDTH + 2, 2);
 	cout << "War of Tanks Game";
@@ -296,15 +367,23 @@ void play()
 	cout << " A Key - Left";
 	gotoxy(WIN_WIDTH + 2, 15);
 	cout << " D Key - Right";
-
+	gotoxy(WIN_WIDTH + 2, 16);
+	cout << " esc Key - to end";
 	gotoxy(18, 5);
 	cout << "Press any key to start";
 	getch();
 	gotoxy(18, 5);
 	cout << "                      ";
 
+	/*generate first and seconed enemys*/
+	genEnemy(0);
+	genEnemy(1);
+
+
+
 	while (1)
 	{
+		/********section to control the user's tank position*******/
 		if (kbhit())
 		{
 			computerPos.deleteItem(g_player_tank_pos);
@@ -325,20 +404,34 @@ void play()
 			}
 			computerPos.insertItem(g_player_tank_pos);
 		}
+		/**********************************************************/
 
+		/*drawing the enemy and the player's tanks*/
 		draw_player_tank();
 		drawEnemy(0);
 		drawEnemy(1);
+		/******************************************/
+
 		if (collision() == 1)
 		{
 			gameover();
 			return;
 		}
+		/*sleep function just used to slow down the motion of the system*/
 		Sleep(50);
+
+		/*erasing the privious tanks before the up comming detection loop*/
 		erase_player_tank();
 		eraseEnemy(0);
 		eraseEnemy(1);
+		/*****************************************************************/
 
+		/*------------section for the enemy flag----------------------*/
+		/*
+		[description]: this section detects if the difference between the y postions
+		of the two enemy tanks, and if its 10 positions it gives a flag to set the second
+		and when the distance of an enemy is SCREEN_HEIGHT - 4 the score will be updated
+		*/
 		if (enemyY[0] == 10)
 			if (enemyFlag[1] == 0)
 				enemyFlag[1] = 1;
@@ -361,6 +454,7 @@ void play()
 			score++;
 			updateScore();
 		}
+		/*-----------------------------------------------------------*/
 	}
 }
 
@@ -368,8 +462,8 @@ int main()
 {
 
 	setcursor(0, 0);
-	srand((unsigned)time(NULL));
 
+	/*this do while(1) loop is a super loop to hang the system till the user choose "2. Quit"*/
 	do
 	{
 		system("cls"); // To clear the whole screen
@@ -383,21 +477,18 @@ int main()
 		gotoxy(10, 9);
 		cout << "1. Start Game";
 		gotoxy(10, 10);
-		cout << "2. Instructions";
-		gotoxy(10, 11);
-		cout << "3. Quit";
-		gotoxy(10, 13);
-		cout << "Select option: ";
+		cout << "2. Quit";
+		gotoxy(10, 12);
+		cout << "Select option press 1 or 2";
 		char op = getche(); // To get a char
 
 		if (op == '1')
+			/*if the pressed key is 1 the play function will be called and the game will start*/
 			play();
 		else if (op == '2')
-			instructions();
-		else if (op == '3')
+			/*if the pressed key is 2 the exit function will be called and the game will terminate*/
 			exit(0);
-
+		
 	} while (1);
-
 	return 0;
 }
