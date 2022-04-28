@@ -138,7 +138,7 @@ int Hash::searchItem()
 	{
 		int i = g_position_hash_table;
 		int g = g_position_hash_table;
-		for (int x = 0; x < BUCKET; x++)
+		while (1)
 		{
 			if (table[i] == 1)
 			{
