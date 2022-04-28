@@ -12,23 +12,20 @@ using namespace std;
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
 #define WIN_WIDTH 70
-#define LINEAR 0
-#define SEARCH_TYPE LINEAR
 /*-------------------------------------------------------------- - */
 
-
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-COORD CursorPosition;				   // To specify the coordinates
+COORD CursorPosition; // To specify the coordinates
 
 /*To initialize it at the half of the screen and that value will be updated according to the x position of the player's tank*/
-int g_player_tank_pos = WIN_WIDTH / 2;  
+int g_player_tank_pos = WIN_WIDTH / 2;
 
 /*-------------------------------------------------------------------*/
 /*----------------------- data structure used -----------------------*/
 /*-------------------------------------------------------------------*/
 /*
-[description]: this sector holds a hash class used as a data structure for the game that 
-by mapping the current location of the players tank to a certain index in a table, then assign the current location 
+[description]: this sector holds a hash class used as a data structure for the game that
+by mapping the current location of the players tank to a certain index in a table, then assign the current location
 by 1 and the other indexex are 0's and searching about the (1) value by using the hashes technic.
 */
 class Hash
@@ -43,7 +40,7 @@ public:
 
 	/*** the prototypes of the functions used in the hash class***/
 	/*Constructor to get the intial values*/
-	Hash(int x); 
+	Hash(int x);
 
 	/*inserts a key into hash table*/
 	void insertItem(int no_of_indexes);
@@ -62,7 +59,8 @@ public:
 	int searchItem();
 
 	/*distructor to deallocate the table from the memory*/
-	~Hash(){
+	~Hash()
+	{
 		delete table;
 	}
 	/************************************************************/
@@ -70,7 +68,7 @@ public:
 
 /***functions definitions sector of the hash class***/
 
-/*the constructor gets the value of no_of_indexes that represents the number of the elements in 
+/*the constructor gets the value of no_of_indexes that represents the number of the elements in
 the hash table "the pointer table at the class" */
 Hash::Hash(int no_of_indexes)
 {
@@ -99,9 +97,8 @@ void Hash::deleteItem(int position)
 /*function used for searching */
 int Hash::searchItem()
 {
+	/*to get complixity of O(n) and n depends on the BUCKET value*/
 
-/*to get complixity of O(n) and n depends on the BUCKET value*/
-#if(SEARCH_TYPE == LINEAR)
 	for (int i = 0; i < BUCKET; i++)
 	{
 		if (table[i] == 1)
@@ -113,7 +110,6 @@ int Hash::searchItem()
 				return pos + 17;
 		}
 	}
-#endif	
 }
 /************************************************************/
 /*-------------------------------------------------------------- - */
@@ -155,7 +151,6 @@ void gotoxy(int x, int y)
 	/*passing the structure to the function SetConsoleCursorPosition to set the cursor on that (x,y) posision*/
 	SetConsoleCursorPosition(console, CursorPosition);
 }
-
 
 void setcursor(bool visible, DWORD size)
 {
@@ -335,7 +330,7 @@ void play()
 	the first enemy's postion
 	the score
 	gives the flag to the firest enemy
-	set the flag of the second enemy by 0 
+	set the flag of the second enemy by 0
 	set the y position of the enemy's tanks by 1
 	*/
 
@@ -379,8 +374,6 @@ void play()
 	genEnemy(0);
 	genEnemy(1);
 
-
-
 	while (1)
 	{
 		/********section to control the user's tank position*******/
@@ -418,7 +411,7 @@ void play()
 			return;
 		}
 		/*sleep function just used to slow down the motion of the system*/
-		Sleep(50);
+		Sleep(40);
 
 		/*erasing the privious tanks before the up comming detection loop*/
 		erase_player_tank();
@@ -488,7 +481,7 @@ int main()
 		else if (op == '2')
 			/*if the pressed key is 2 the exit function will be called and the game will terminate*/
 			exit(0);
-		
+
 	} while (1);
 	return 0;
 }
