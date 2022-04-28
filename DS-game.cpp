@@ -12,6 +12,7 @@ using namespace std;
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
 #define WIN_WIDTH 70
+#define enhancment_Algorithm
 /*-------------------------------------------------------------- - */
 
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -19,6 +20,11 @@ COORD CursorPosition; // To specify the coordinates
 
 /*To initialize it at the half of the screen and that value will be updated according to the x position of the player's tank*/
 int g_player_tank_pos = WIN_WIDTH / 2;
+
+/*To check if the position of the player was inserted before */
+int g_position_flag = 0;
+/*Used in algoritm enhancment which represents the last position in hash table*/
+int g_position_hash_table = 0;
 
 /*-------------------------------------------------------------------*/
 /*----------------------- data structure used -----------------------*/
@@ -97,12 +103,13 @@ void Hash::deleteItem(int position)
 /*function used for searching */
 int Hash::searchItem()
 {
+#ifndef enhancment_Algorithm
 	/*to get complixity of O(n) and n depends on the BUCKET value*/
-
 	for (int i = 0; i < BUCKET; i++)
 	{
 		if (table[i] == 1)
 		{
+			g_position_flag = 1;
 			int pos = i + 17;
 			if (pos == g_player_tank_pos)
 				return pos;
@@ -110,6 +117,50 @@ int Hash::searchItem()
 				return pos + 17;
 		}
 	}
+#endif
+#ifdef enhancment_Algorithm
+	if (!g_position_flag)
+	{
+		for (int i = 0; i < BUCKET; i++)
+		{
+			if (table[i] == 1)
+			{
+				g_position_flag = 1;
+				g_position_hash_table = i;
+				if ((g_position_hash_table + 17) == g_player_tank_pos)
+					return g_position_hash_table + 17;
+				else
+					return g_position_hash_table + 34;
+			}
+		}
+	}
+	else
+	{
+		int i = g_position_hash_table;
+		int g = g_position_hash_table;
+		for (int x = 0; x < BUCKET; x++)
+		{
+			if (table[i] == 1)
+			{
+				g_position_hash_table = i;
+				if ((g_position_hash_table + 17) == g_player_tank_pos)
+					return (g_position_hash_table + 17);
+				else
+					return (g_position_hash_table + 34);
+			}
+			if (table[g] == 1)
+			{
+				g_position_hash_table = g;
+				if ((g_position_hash_table + 17) == g_player_tank_pos)
+					return (g_position_hash_table + 17);
+				else
+					return (g_position_hash_table + 34);
+			}
+			i++;
+			g--;
+		}
+	}
+#endif
 }
 /************************************************************/
 /*-------------------------------------------------------------- - */
@@ -119,12 +170,12 @@ int Hash::searchItem()
 /*------------------------------------------------------------------------------------*/
 
 /*two arrays to define the location of the enemy "computers' tanks"*/
-int enemyY[2];
-int enemyX[2];
+int g_computer_y[2];
+int g_computer_x[2];
 Hash computerPos(17);
 
 /*enemy flage to get the flage to enemy second creation*/
-int enemyFlag[2];
+int g_computer_tank_flag[2];
 
 /*------------the shape of the player's and the computers tanks----------*/
 int g_player_tank[4][4] = {
@@ -183,34 +234,34 @@ void drawBorder()
 	}
 }
 
-/*function used to get the users position and moves it to the enemyX[i] xlocation*/
+/*function used to get the users position and moves it to the g_computer_x[i] xlocation*/
 void genEnemy(int ind)
 {
-	enemyX[ind] = computerPos.searchItem();
+	g_computer_x[ind] = computerPos.searchItem();
 }
 
 /*Function used to draw and set the enemy on the screen */
 void drawEnemy(int ind)
 {
-	if (enemyFlag[ind] == true)
+	if (g_computer_tank_flag[ind] == true)
 	{
 		int i;
-		gotoxy(enemyX[ind], enemyY[ind]);
+		gotoxy(g_computer_x[ind], g_computer_y[ind]);
 		for (i = 0; i < 4; i++)
 		{
 			cout << char(g_enemy_tank[0][i]);
 		}
-		gotoxy(enemyX[ind], enemyY[ind] + 1);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 1);
 		for (i = 0; i < 4; i++)
 		{
 			cout << char(g_enemy_tank[1][i]);
 		}
-		gotoxy(enemyX[ind], enemyY[ind] + 2);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 2);
 		for (i = 0; i < 4; i++)
 		{
 			cout << char(g_enemy_tank[2][i]);
 		}
-		gotoxy(enemyX[ind], enemyY[ind] + 3);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 3);
 		for (i = 0; i < 4; i++)
 		{
 			cout << char(g_enemy_tank[3][i]);
@@ -221,15 +272,15 @@ void drawEnemy(int ind)
 /*Function used to delete the enemy from the screen */
 void eraseEnemy(int ind)
 {
-	if (enemyFlag[ind] == true)
+	if (g_computer_tank_flag[ind] == true)
 	{
-		gotoxy(enemyX[ind], enemyY[ind]);
+		gotoxy(g_computer_x[ind], g_computer_y[ind]);
 		cout << "    ";
-		gotoxy(enemyX[ind], enemyY[ind] + 1);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 1);
 		cout << "    ";
-		gotoxy(enemyX[ind], enemyY[ind] + 2);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 2);
 		cout << "    ";
-		gotoxy(enemyX[ind], enemyY[ind] + 3);
+		gotoxy(g_computer_x[ind], g_computer_y[ind] + 3);
 		cout << "    ";
 	}
 }
@@ -238,7 +289,7 @@ void eraseEnemy(int ind)
 void resetEnemy(int ind)
 {
 	eraseEnemy(ind);
-	enemyY[ind] = 1;
+	g_computer_y[ind] = 1;
 	genEnemy(ind);
 }
 
@@ -270,10 +321,11 @@ void erase_player_tank()
 /*function to detecte if there it collision happends between the enemy and player's tanks*/
 int collision()
 {
-	if (enemyY[0] + 4 >= 23)
+	if (g_computer_y[0] + 4 >= 23)
 	{
-		if (enemyX[0] + 4 - g_player_tank_pos >= 0 && enemyX[0] + 4 - g_player_tank_pos < 9)
+		if (g_computer_x[0] + 4 - g_player_tank_pos >= 0 && g_computer_x[0] + 4 - g_player_tank_pos < 9)
 		{
+			g_position_flag = 0;
 			return 1;
 		}
 	}
@@ -337,9 +389,9 @@ void play()
 	g_player_tank_pos = -1 + WIN_WIDTH / 2;
 	computerPos.insertItem(g_player_tank_pos);
 	score = 0;
-	enemyFlag[0] = 1;
-	enemyFlag[1] = 0;
-	enemyY[0] = enemyY[1] = 1;
+	g_computer_tank_flag[0] = 1;
+	g_computer_tank_flag[1] = 0;
+	g_computer_y[0] = g_computer_y[1] = 1;
 
 	/*initialize the system*/
 	system("cls");
@@ -425,23 +477,23 @@ void play()
 		of the two enemy tanks, and if its 10 positions it gives a flag to set the second
 		and when the distance of an enemy is SCREEN_HEIGHT - 4 the score will be updated
 		*/
-		if (enemyY[0] == 10)
-			if (enemyFlag[1] == 0)
-				enemyFlag[1] = 1;
+		if (g_computer_y[0] == 10)
+			if (g_computer_tank_flag[1] == 0)
+				g_computer_tank_flag[1] = 1;
 
-		if (enemyFlag[0] == 1)
-			enemyY[0] += 1;
+		if (g_computer_tank_flag[0] == 1)
+			g_computer_y[0] += 1;
 
-		if (enemyFlag[1] == 1)
-			enemyY[1] += 1;
+		if (g_computer_tank_flag[1] == 1)
+			g_computer_y[1] += 1;
 
-		if (enemyY[0] > SCREEN_HEIGHT - 4)
+		if (g_computer_y[0] > SCREEN_HEIGHT - 4)
 		{
 			resetEnemy(0);
 			score++;
 			updateScore();
 		}
-		if (enemyY[1] > SCREEN_HEIGHT - 4)
+		if (g_computer_y[1] > SCREEN_HEIGHT - 4)
 		{
 			resetEnemy(1);
 			score++;
