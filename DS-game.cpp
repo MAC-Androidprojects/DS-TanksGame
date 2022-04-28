@@ -5,14 +5,16 @@
 #include <time.h>
 #include <string>
 #include <fstream>
+#include <ctime>
+#include <chrono>
 
 using namespace std;
-
 /*------------------------ static values ----------------------- - */
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
 #define WIN_WIDTH 70
 #define enhancment_Algorithm
+#define enhancment_DS
 /*-------------------------------------------------------------- - */
 
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -103,18 +105,22 @@ void Hash::deleteItem(int position)
 /*function used for searching */
 int Hash::searchItem()
 {
+
 #ifndef enhancment_Algorithm
 	/*to get complixity of O(n) and n depends on the BUCKET value*/
 	for (int i = 0; i < BUCKET; i++)
 	{
 		if (table[i] == 1)
 		{
-			g_position_flag = 1;
+#ifdef enhancment_DS
 			int pos = i + 17;
 			if (pos == g_player_tank_pos)
 				return pos;
 			else
 				return pos + 17;
+#else
+			return i;
+#endif
 		}
 	}
 #endif
@@ -172,7 +178,11 @@ int Hash::searchItem()
 /*two arrays to define the location of the enemy "computers' tanks"*/
 int g_computer_y[2];
 int g_computer_x[2];
+#ifdef enhancment_DS
 Hash computerPos(17);
+#else
+Hash computerPos(51);
+#endif
 
 /*enemy flage to get the flage to enemy second creation*/
 int g_computer_tank_flag[2];
@@ -396,7 +406,6 @@ void play()
 
 	/*initialize the system*/
 	system("cls");
-
 	/*call these functions to set the game display layout*/
 	drawBorder();
 	updateScore();
@@ -424,7 +433,14 @@ void play()
 	cout << "                      ";
 
 	/*generate first and seconed enemys*/
+	auto start = chrono::steady_clock::now();
 	genEnemy(0);
+	auto end = chrono::steady_clock::now();
+	gotoxy(WIN_WIDTH + 2, 15);
+	cout << "Elapsed time in nanoseconds: "
+		 << chrono::duration_cast<chrono::nanoseconds>(end - start).count()
+		 << " ns" << endl;
+
 	genEnemy(1);
 
 	while (1)
@@ -446,12 +462,12 @@ void play()
 			}
 			if (ch == 27)
 			{
+				g_position_hash_table = 0;
 				break;
 			}
 			computerPos.insertItem(g_player_tank_pos);
 		}
 		/**********************************************************/
-
 		/*drawing the enemy and the player's tanks*/
 		draw_player_tank();
 		drawEnemy(0);
@@ -506,7 +522,6 @@ void play()
 
 int main()
 {
-
 	setcursor(0, 0);
 
 	/*this do while(1) loop is a super loop to hang the system till the user choose "2. Quit"*/
