@@ -321,6 +321,7 @@ void erase_player_tank()
 /*function to detecte if there it collision happends between the enemy and player's tanks*/
 int collision()
 {
+	g_position_hash_table = 0;
 	if (g_computer_y[0] + 4 >= 23)
 	{
 		if (g_computer_x[0] + 4 - g_player_tank_pos >= 0 && g_computer_x[0] + 4 - g_player_tank_pos < 9)
