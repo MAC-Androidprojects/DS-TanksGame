@@ -69,7 +69,10 @@ public:
 	/*distructor to deallocate the table from the memory*/
 	~Hash()
 	{
-		delete table;
+		for (int i = 0; i < BUCKET; i++)
+		{
+			table[i] = 0;
+		}
 	}
 	/************************************************************/
 };
@@ -84,6 +87,11 @@ Hash::Hash(int no_of_indexes)
 	this->BUCKET = no_of_indexes;
 	/*creating a dynamic array and make its head or name is table .. which is private element*/
 	table = new int[BUCKET];
+	/*To make sure it's all zeros*/
+	for (int i = 0; i < BUCKET; i++)
+	{
+		table[i] = 0;
+	}
 }
 
 /*function to insert postion of the player's tank as index to the table*/
@@ -331,7 +339,6 @@ void erase_player_tank()
 /*function to detecte if there it collision happends between the enemy and player's tanks*/
 int collision()
 {
-	g_position_hash_table = 0;
 	if (g_computer_y[0] + 4 >= 23)
 	{
 		if (g_computer_x[0] + 4 - g_player_tank_pos >= 0 && g_computer_x[0] + 4 - g_player_tank_pos < 9)
@@ -340,6 +347,7 @@ int collision()
 			return 1;
 		}
 	}
+	g_position_hash_table = 0;
 	return 0;
 }
 
@@ -433,14 +441,7 @@ void play()
 	cout << "                      ";
 
 	/*generate first and seconed enemys*/
-	auto start = chrono::steady_clock::now();
 	genEnemy(0);
-	auto end = chrono::steady_clock::now();
-	gotoxy(WIN_WIDTH + 2, 15);
-	cout << "Elapsed time in nanoseconds: "
-		 << chrono::duration_cast<chrono::nanoseconds>(end - start).count()
-		 << " ns" << endl;
-
 	genEnemy(1);
 
 	while (1)
@@ -448,24 +449,32 @@ void play()
 		/********section to control the user's tank position*******/
 		if (kbhit())
 		{
-			computerPos.deleteItem(g_player_tank_pos);
 			char ch = getch();
 			if (ch == 'a' || ch == 'A')
 			{
+				/*To delete the previous position from hash table*/
+				computerPos.deleteItem(g_player_tank_pos);
 				if (g_player_tank_pos > 18)
 					g_player_tank_pos -= 4;
+				/*To insert the previous position from hash table*/
+				computerPos.insertItem(g_player_tank_pos);
 			}
 			if (ch == 'd' || ch == 'D')
 			{
+				/*To delete the previous position from hash table*/
+				computerPos.deleteItem(g_player_tank_pos);
 				if (g_player_tank_pos < 50)
 					g_player_tank_pos += 4;
+				/*To insert the previous position from hash table*/
+				computerPos.insertItem(g_player_tank_pos);
 			}
+
 			if (ch == 27)
 			{
+				computerPos.~Hash();
 				g_position_hash_table = 0;
 				break;
 			}
-			computerPos.insertItem(g_player_tank_pos);
 		}
 		/**********************************************************/
 		/*drawing the enemy and the player's tanks*/
