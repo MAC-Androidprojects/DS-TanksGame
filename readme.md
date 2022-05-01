@@ -18,3 +18,4 @@ This is the code for the `Data structure` project It's a game between you and th
   If tou removed or commented the definition of this algorithm in the code you will deactivate the algorithm
 - `enhancment_DS` : This is the enhancment we made in the code to make the hash table smaller (We made the `BUCKET` 17 instead of 51), so the computer can finds you faster but there would be collision in some places and of course we managed to handle it.
   If tou removed or commented the definition of this enhancment in the code you will deactivate the Ds enhancment and your `BUCKET` would be 51 instead of 17
+  **Note** : You can find the time measurments in time branch
